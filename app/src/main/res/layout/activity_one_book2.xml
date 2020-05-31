@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="kz.incubator.sdcl.club1.MainActivity">
+    android:orientation="vertical">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -123,17 +122,6 @@
                     </LinearLayout>
 
                 </LinearLayout>
-
-                <Button
-                    android:id="@+id/readBookBtn"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:background="@drawable/border_grey"
-                    android:text="@string/read"
-                    android:layout_marginBottom="10dp" />
-
             </LinearLayout>
 
 

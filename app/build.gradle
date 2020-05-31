@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
 
     defaultConfig {
-        applicationId "kz.incubator.sdcl.club1"
+        applicationId "kz.incubator.mds.reads"
         minSdkVersion 19
         targetSdkVersion 27
         versionCode 1
@@ -18,10 +18,6 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-    }
-
-    dataBinding {
-        enabled = true
     }
 }
 
