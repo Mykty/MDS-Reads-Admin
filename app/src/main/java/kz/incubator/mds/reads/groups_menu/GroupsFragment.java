@@ -15,6 +15,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -164,14 +165,19 @@ public class GroupsFragment extends Fragment implements View.OnClickListener {
                 break;
         }
     }
+
     Groups groups;
     public void addGroupsChangeListener(){
         databaseReference.child("group_list").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Groups groups = dataSnapshot.getValue(Groups.class);
-                groupList.add(groups);
+                int ratingN = groups.getSum_point() / (groups.getPerson_count() == 0?1:groups.getPerson_count());
 
+                Log.d("M_GroupsFragment", "group name: "+groups.getGroup_name());
+                Log.d("M_GroupsFragment", "group sum point: "+ratingN);
+
+                groupList.add(groups);
                 Collections.sort(groupList, Groups.groupPlace);
                 groupListAdapter.notifyDataSetChanged();
             }
@@ -204,6 +210,7 @@ public class GroupsFragment extends Fragment implements View.OnClickListener {
 
             }
         });
+
     }
 
     public void checkVersion() {

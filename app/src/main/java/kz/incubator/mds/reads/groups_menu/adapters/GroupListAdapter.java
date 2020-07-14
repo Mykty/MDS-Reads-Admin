@@ -71,7 +71,7 @@ public class GroupListAdapter extends RecyclerView.Adapter<GroupListAdapter.MyTV
 
         holder.groupName.setText(item.getGroup_name());
         holder.personCount.setText("" + item.getPerson_count());
-        holder.groupPoint.setText("" + (item.getSum_point() / (item.getPerson_count() == 0?1:item.getPerson_count()) ));
+        holder.groupPoint.setText("" + (item.getSum_point() / (item.getPerson_count() == 0?1:item.getPerson_count())));
 //        holder.groupPlace.setText(""+(position+1));
 
         int gradientBack = gradientStore.getResourceId(position, 0);

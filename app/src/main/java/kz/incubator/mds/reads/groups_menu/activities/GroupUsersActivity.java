@@ -64,6 +64,7 @@ import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_PHOTO;
 import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_POINT;
 import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_RAINTING_IN_GROUPS;
 import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_REVIEW_SUM;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_USER_TYPE;
 
 public class GroupUsersActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -110,7 +111,7 @@ public class GroupUsersActivity extends AppCompatActivity implements View.OnClic
 
         initView();
         getUsersFromDB();
-        addListener();
+        addUserListListener();
         sortDialog();
     }
 
@@ -219,12 +220,10 @@ public class GroupUsersActivity extends AppCompatActivity implements View.OnClic
     }
 
     public void getUsersFromDB() {
-
         new BackgroundTaskForUserFill(this, gId, recyclerView, progressBar).execute();
         mSwipeRefreshLayout.setRefreshing(false);
         progressLoading.setVisibility(View.GONE);
         listAdapter = new UserListAdapter(this, userList);
-
     }
 
     public void refreshUsersFromFirebase(String version) {
@@ -233,7 +232,7 @@ public class GroupUsersActivity extends AppCompatActivity implements View.OnClic
     }
 
     int c = 0;
-    public void addListener() {
+    public void addUserListListener() {
         userRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
@@ -276,17 +275,7 @@ public class GroupUsersActivity extends AppCompatActivity implements View.OnClic
 
             }
         });
-
-
-//        mDatabase.child("group_list").child(user.getGroup_id()).child("sum_point").setValue(groupPointSum).addOnCompleteListener(new OnCompleteListener<Void>() {
-//            @Override
-//            public void onComplete(@NonNull Task<Void> task) {
-//                finish();
-//            }
-//        });
-
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -507,6 +496,7 @@ public class GroupUsersActivity extends AppCompatActivity implements View.OnClic
                             userCursor.getString(userCursor.getColumnIndex(COLUMN_GROUP)),
                             userCursor.getString(userCursor.getColumnIndex(COLUMN_PHOTO)),
                             userCursor.getString(userCursor.getColumnIndex(COLUMN_ENTER_DATE)),
+                            userCursor.getString(userCursor.getColumnIndex(COLUMN_USER_TYPE)),
                             userCursor.getString(userCursor.getColumnIndex(COLUMN_IMG_STORAGE_NAME)),
                             userCursor.getInt(userCursor.getColumnIndex(COLUMN_BCOUNT)),
                             userCursor.getInt(userCursor.getColumnIndex(COLUMN_POINT)),

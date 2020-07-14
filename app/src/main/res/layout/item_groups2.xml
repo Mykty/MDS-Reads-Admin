@@ -19,7 +19,6 @@
             style="@style/viewParent.headerText.HomeCardTitle"
             android:layout_width="match_parent"
             android:layout_toStartOf="@id/groupPhoto"
-            android:gravity="start"
             android:singleLine="true"
             android:text="Қазақстан тарихы" />
 
@@ -54,7 +53,7 @@
                     android:textSize="20dp" />
 
             </LinearLayout>
-            
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

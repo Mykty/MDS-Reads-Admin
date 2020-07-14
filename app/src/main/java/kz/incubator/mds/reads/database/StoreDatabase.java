@@ -13,7 +13,7 @@ import kz.incubator.mds.reads.groups_menu.module.User;
 public class StoreDatabase extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "mds_reads.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public static final String TABLE_USER = "user_store";
     public static final String TABLE_BOOKS = "book_store";
@@ -30,6 +30,7 @@ public class StoreDatabase extends SQLiteOpenHelper {
     public static final String COLUMN_POINT = "point";
     public static final String COLUMN_REVIEW_SUM = "review_sum";
     public static final String COLUMN_RAINTING_IN_GROUPS = "ratingInGroups";
+    public static final String COLUMN_USER_TYPE = "userType";
 
     public static final String TABLE_VER = "versions";
     public static final String COLUMN_USER_VER = "user_ver";

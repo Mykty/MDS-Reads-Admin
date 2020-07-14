@@ -18,6 +18,9 @@ import com.dk.view.folder.ResideMenu;
 import com.dk.view.folder.ResideMenuItem;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -26,13 +29,15 @@ import kz.incubator.mds.reads.authentications.LoginByEmailPage;
 import kz.incubator.mds.reads.book_list_menu.BookListFragment;
 import kz.incubator.mds.reads.database.StoreDatabase;
 import kz.incubator.mds.reads.groups_menu.GroupsFragment;
+import kz.incubator.mds.reads.groups_menu.module.User;
+import kz.incubator.mds.reads.rating_by_users.UserRatingFragment;
 import kz.incubator.mds.reads.rules_menu.RuleFragment;
 import kz.incubator.mds.reads.settings_menu.SettingsFragment;
 
 public class MenuActivity extends AppCompatActivity implements View.OnClickListener {
 
     public ResideMenu resideMenu;
-    private ResideMenuItem users, userProfile, book_list, groupListMenu;
+    private ResideMenuItem usersMenu, bookListMenu, groupListMenu;
     private ResideMenuItem rules, about_us, settings, log_out;
     public static Toolbar actionToolbar;
     DatabaseReference mDatabaseRef, booksRef, usersRef;
@@ -89,6 +94,7 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
         storeDb = new StoreDatabase(this);
         sqdb = storeDb.getWritableDatabase();
         checkInternetConnection();
+        addUserListListener();
     }
 
     public static void setTitle(String title) {
@@ -109,23 +115,24 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
 
         resideMenu.setScaleValue(0.6f);
 
-        book_list = new ResideMenuItem(this, R.drawable.ic_list_black_24dp, getString(R.string.menu_books));
+        usersMenu = new ResideMenuItem(this, R.drawable.ic_users, getString(R.string.menu_users));
         groupListMenu = new ResideMenuItem(this, R.drawable.ic_groups, getString(R.string.menu_groups));
 
+        bookListMenu = new ResideMenuItem(this, R.drawable.ic_list_black_24dp, getString(R.string.menu_books));
         rules = new ResideMenuItem(this, R.drawable.ic_assignment_black_24dp, getString(R.string.menu_rules));
         about_us = new ResideMenuItem(this, R.drawable.ic_info_outline_black_24dp, getString(R.string.menu_about_us));
         settings = new ResideMenuItem(this, R.drawable.ic_language_white, getString(R.string.menu_change_language));
         log_out = new ResideMenuItem(this, R.drawable.ic_exit_to_app_black_24dp, getString(R.string.menu_sing_out));
 
-        book_list.setOnClickListener(this);
+        usersMenu.setOnClickListener(this);
+        bookListMenu.setOnClickListener(this);
         groupListMenu.setOnClickListener(this);
         rules.setOnClickListener(this);
         about_us.setOnClickListener(this);
         settings.setOnClickListener(this);
         log_out.setOnClickListener(this);
 
-        resideMenu.addMenuItem(groupListMenu, ResideMenu.DIRECTION_LEFT);
-        resideMenu.addMenuItem(book_list, ResideMenu.DIRECTION_LEFT);
+        resideMenu.addMenuItem(bookListMenu, ResideMenu.DIRECTION_LEFT);
 
         resideMenu.addMenuItem(rules, ResideMenu.DIRECTION_LEFT);
         resideMenu.addMenuItem(about_us, ResideMenu.DIRECTION_LEFT);
@@ -133,7 +140,10 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
         resideMenu.addMenuItem(settings, ResideMenu.DIRECTION_LEFT);
         resideMenu.addMenuItem(log_out, ResideMenu.DIRECTION_LEFT);
 
-        resideMenu.setSwipeDirectionDisable(ResideMenu.DIRECTION_RIGHT);
+        resideMenu.addMenuItem(groupListMenu, ResideMenu.DIRECTION_RIGHT);
+        resideMenu.addMenuItem(usersMenu, ResideMenu.DIRECTION_RIGHT);
+
+//        resideMenu.setSwipeDirectionDisable(ResideMenu.DIRECTION_RIGHT);
 
     }
 
@@ -145,7 +155,7 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
 
-        if (view == book_list) {
+        if (view == bookListMenu) {
             changeFragment(bookListFragment);
             getSupportActionBar().setTitle(getString(R.string.menu_books));
             actionToolbar.setNavigationIcon(R.drawable.ic_list_black_24dp);
@@ -154,6 +164,11 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
             changeFragment(new GroupsFragment());
             getSupportActionBar().setTitle(getString(R.string.menu_groups));
             actionToolbar.setNavigationIcon(R.drawable.ic_groups);
+
+        }else if (view == usersMenu) {
+            changeFragment(new UserRatingFragment());
+            getSupportActionBar().setTitle(getString(R.string.menu_users));
+            actionToolbar.setNavigationIcon(R.drawable.ic_users);
 
         } else if (view == about_us) {
             changeFragment(new AboutUsFragment());
@@ -179,6 +194,40 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         resideMenu.closeMenu();
+    }
+
+    public void addUserListListener() {
+        usersRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
+                User user = dataSnapshot.getValue(User.class);
+                storeDb.updateUser(sqdb, user);
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
+
+            }
+
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
     }
 
     private boolean checkInternetConnection() {

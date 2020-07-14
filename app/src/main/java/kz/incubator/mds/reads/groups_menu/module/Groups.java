@@ -27,13 +27,13 @@ public class Groups implements Serializable {
     public static Comparator<Groups> groupPlace = new Comparator<Groups>() {
 
         public int compare(Groups g1, Groups g2) {
-            int group1 = g1.getSum_point();
-            int group2 = g2.getSum_point();
 
+            int group1 = g1.getSum_point() / (g1.getPerson_count() == 0?1:g1.getPerson_count());
+            int group2 = g2.getSum_point() / (g2.getPerson_count() == 0?1:g2.getPerson_count());
             //ascending order
 //            return user1.compareTo(user2);
 
-            return group2-group1;
+            return group2 - group1;
 
             //descending order
             //return StudentName2.compareTo(StudentName1);

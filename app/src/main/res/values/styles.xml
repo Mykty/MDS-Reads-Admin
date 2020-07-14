@@ -70,11 +70,13 @@
         <item name="android:textColor">@color/white</item>
         <item name="fontFamily">@font/quick</item>
     </style>
+
     <style name="Title2" parent="TextAppearance.AppCompat">
         <item name="android:textSize">21sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="fontFamily">@font/quick</item>
     </style>
+
     <style name="MyDarkToolbarStyle" parent="ThemeOverlay.AppCompat.Light">
         <item name="android:colorBackground">@color/white</item>
         <item name="android:textColorSecondary">@color/white</item>
