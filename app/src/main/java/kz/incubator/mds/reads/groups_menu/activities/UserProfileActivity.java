@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -27,13 +28,16 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -60,6 +64,7 @@ public class UserProfileActivity extends AppCompatActivity {
     TextView username, pointSum, phoneNumber, subTime, userEmail, userRating;
     TextView readBookCount;
     CircleImageView userImage;
+    ImageView userTypeIcon;
     ViewPager viewPager;
     TabLayout tabLayout;
     int USER_EDIT = 97;
@@ -129,6 +134,7 @@ public class UserProfileActivity extends AppCompatActivity {
         pointSum = findViewById(R.id.pointSum);
         readBookCount = findViewById(R.id.readBookCount);
         userImage = findViewById(R.id.userImage);
+        userTypeIcon = findViewById(R.id.userTypeIcon);
         viewPager = findViewById(R.id.viewPager);
         subscriptionL = findViewById(R.id.subscriptionL);
         phoneL = findViewById(R.id.phoneL);
@@ -169,6 +175,22 @@ public class UserProfileActivity extends AppCompatActivity {
             userRating.setText("" + u.getRatingInGroups());
 
             userId = u.getPhoneNumber();
+
+            int uTypeIcon = R.color.transparent;
+
+            switch (user.getUserType()) {
+                case "gold":
+                    uTypeIcon = R.drawable.ic_gold;
+                    break;
+                case "silver":
+                    uTypeIcon = R.drawable.ic_silver;
+                    break;
+                case "bronze":
+                    uTypeIcon = R.drawable.ic_bronze;
+                    break;
+            }
+
+            userTypeIcon.setImageResource(uTypeIcon);
         }
     }
 
@@ -345,7 +367,6 @@ public class UserProfileActivity extends AppCompatActivity {
                             @SuppressLint("MissingPermission")
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
                                 mDatabase.child("user_list").child(user.getPhoneNumber()).removeValue();
 
                                 mDatabase.child("book_list").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -355,7 +376,28 @@ public class UserProfileActivity extends AppCompatActivity {
                                             mDatabase.child("book_list").child(books.getKey()).child("reading").child(user.getPhoneNumber()).removeValue();
                                             mDatabase.child("book_list").child(books.getKey()).child("readed").child(user.getPhoneNumber()).removeValue();
                                         }
-                                        increaseUserVersion();
+
+                                        String tableName = "other";
+                                        switch (user.getUserType()) {
+                                            case "gold":
+                                                tableName = "a_gold";
+                                                break;
+                                            case "silver":
+                                                tableName = "b_silver";
+                                                break;
+                                            case "bronze":
+                                                tableName = "b_bronze";
+                                                break;
+                                        }
+
+                                        mDatabase.child("rating_users").child(tableName).child(user.getPhoneNumber()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                decreasePersonCount(user.getGroup_id());
+                                                increaseUserVersion();
+                                            }
+                                        });
+
                                     }
 
                                     @Override
@@ -370,15 +412,16 @@ public class UserProfileActivity extends AppCompatActivity {
                                     public void onSuccess(Void aVoid) {
                                         Toast.makeText(UserProfileActivity.this, getString(R.string.user_deleted), Toast.LENGTH_SHORT).show();
                                         onBackPressed();
-                                        finish();
                                     }
 
                                 }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(Exception exception) {
                                         Log.d("info", "onFailure: did not delete file");
+                                        onBackPressed();
                                     }
                                 });
+
                             }
                         })
                         .setNegativeButton(getString(R.string.no), new DialogInterface.OnClickListener() {
@@ -393,6 +436,21 @@ public class UserProfileActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void decreasePersonCount(final String groupId){
+        mDatabase.child("group_list").child(groupId).child("person_count").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                int count = Integer.parseInt(dataSnapshot.getValue().toString());
+                mDatabase.child("group_list").child(groupId).child("person_count").setValue((count-1));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void increaseUserVersion() {

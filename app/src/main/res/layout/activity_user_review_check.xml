@@ -183,41 +183,64 @@
                 android:textColor="@color/description"
                 android:textSize="15sp" />
 
-            <RatingBar
-                android:id="@+id/adminRate"
-                style="?android:attr/ratingBarStyleIndicator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="5dp"
-                android:isIndicator="false"
-                android:numStars="5"
-                android:stepSize="1"
-                android:theme="@style/AdminRatingBar" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="5dp">
+
+                <Button
+                    android:id="@+id/adminRateBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:background="@drawable/border"
+                    android:text="-15"
+                    android:textColor="@color/red"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/adminRate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:paddingRight="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:background="@drawable/ed_border"
+                    android:gravity="center"
+                    android:hint="admin rate"
+                    android:inputType="number"
+                    android:paddingLeft="5dp"
+                    android:textSize="20sp" />
+
+            </LinearLayout>
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp">
-
+                android:layout_height="wrap_content">
 
                 <Button
                     android:id="@+id/adminSaveBtn"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:layout_margin="10dp"
                     android:background="@drawable/btn_back"
+                    android:text="@string/save"
                     android:textColor="@color/white"
-                    android:textSize="20dp"
-                    android:text="@string/save"/>
+                    android:textSize="20dp" />
 
                 <ProgressBar
                     android:id="@+id/saveProgress"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:layout_margin="10dp"
+                    android:background="@drawable/btn_back"
                     android:indeterminate="true"
-                    android:indeterminateTintMode="src_atop"
                     android:indeterminateTint="@color/white"
-                    android:background="@drawable/btn_back"/>
+                    android:indeterminateTintMode="src_atop" />
 
             </FrameLayout>
 

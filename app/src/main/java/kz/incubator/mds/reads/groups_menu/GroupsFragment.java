@@ -1,7 +1,9 @@
 package kz.incubator.mds.reads.groups_menu;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -21,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -63,6 +66,8 @@ public class GroupsFragment extends Fragment implements View.OnClickListener {
 
     StoreDatabase storeDb;
     SQLiteDatabase sqdb;
+    Dialog d;
+    int position;
 
     @BindView(R.id.groupRecyclerView) RecyclerView groupRecyclerView;
     @BindView(R.id.fabBtn) FloatingActionButton fabBtn;
@@ -114,8 +119,14 @@ public class GroupsFragment extends Fragment implements View.OnClickListener {
                     }
 
                     @Override
-                    public void onLongItemClick(View view, int position) {
+                    public void onLongItemClick(View view, int pos) {
+                        d = new Dialog(getActivity());
+                        position = pos;
 
+                        d.setContentView(R.layout.dialog_edit_subjects);
+                        LinearLayout deleteLayout = d.findViewById(R.id.deleteLayout);
+                        deleteLayout.setOnClickListener(GroupsFragment.this);
+                        d.show();
                     }
                 })
         );
@@ -127,6 +138,35 @@ public class GroupsFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         switch (view.getId()){
+            case R.id.deleteLayout:
+                new AlertDialog.Builder(getActivity(), R.style.AlertDialogTheme)
+                        .setTitle(groupList.get(position).getGroup_name())
+                        .setMessage(getString(R.string.del_profile_subjects))
+
+                        .setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                String groupId = groupList.get(position).getGroup_id();
+                                databaseReference.child("group_list").child(groupId).removeValue();
+
+                                Toast.makeText(getActivity(), getString(R.string.profile_subjects_deleted), Toast.LENGTH_SHORT).show();
+                                d.dismiss();
+
+                                groupList.remove(position);
+                                groupListAdapter.notifyDataSetChanged();
+
+                            }
+                        })
+                        .setNeutralButton(getString(R.string.no), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        })
+                        .show();
+                break;
+
             case R.id.fabBtn:
                 addGroupDialog = new Dialog(getActivity());
                 addGroupDialog.setContentView(R.layout.activity_add_group);
@@ -197,7 +237,15 @@ public class GroupsFragment extends Fragment implements View.OnClickListener {
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-
+                groups = dataSnapshot.getValue(Groups.class);
+                for(int i = 0; i < groupList.size(); i++){
+                    if(groupList.get(i).getGroup_id().equals(groups.getGroup_id())){
+                        groupList.remove(i);
+                        Collections.sort(groupList, Groups.groupPlace);
+                        groupListAdapter.notifyDataSetChanged();
+                        break;
+                    }
+                }
             }
 
             @Override
@@ -215,7 +263,7 @@ public class GroupsFragment extends Fragment implements View.OnClickListener {
 
     public void checkVersion() {
         Query myTopPostsQuery = databaseReference.child("user_ver");
-        myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+        myTopPostsQuery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 

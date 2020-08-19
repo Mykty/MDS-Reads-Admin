@@ -22,7 +22,6 @@ import kz.incubator.mds.reads.database.StoreDatabase;
 import kz.incubator.mds.reads.groups_menu.adapters.UserListAdapter;
 import kz.incubator.mds.reads.groups_menu.module.User;
 
-import static kz.incubator.mds.reads.MenuActivity.setTitle;
 import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_BCOUNT;
 import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_EMAIL;
 import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_ENTER_DATE;
@@ -35,6 +34,7 @@ import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_PHOTO;
 import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_POINT;
 import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_RAINTING_IN_GROUPS;
 import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_REVIEW_SUM;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_USER_TYPE;
 import static kz.incubator.mds.reads.database.StoreDatabase.TABLE_USER;
 
 public class GetUsersAsyncTask extends AsyncTask<Void, User, Void> {
@@ -95,6 +95,7 @@ public class GetUsersAsyncTask extends AsyncTask<Void, User, Void> {
 
                         String photo = user.getPhoto();
                         String enter_date = user.getEnterDate();
+                        String user_type = user.getUserType();
                         String imgStorageName = user.getImgStorageName();
 
                         int bookCount = user.getBookCount();
@@ -110,6 +111,7 @@ public class GetUsersAsyncTask extends AsyncTask<Void, User, Void> {
                         teacherValue.put(COLUMN_GROUP_ID, group_id);
                         teacherValue.put(COLUMN_PHOTO, photo);
                         teacherValue.put(COLUMN_ENTER_DATE, enter_date);
+                        teacherValue.put(COLUMN_USER_TYPE, user_type);
                         teacherValue.put(COLUMN_POINT, point);
                         teacherValue.put(COLUMN_REVIEW_SUM, review_sum);
                         teacherValue.put(COLUMN_RAINTING_IN_GROUPS, ratingInGroups);

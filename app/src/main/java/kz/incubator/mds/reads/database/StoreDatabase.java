@@ -13,7 +13,7 @@ import kz.incubator.mds.reads.groups_menu.module.User;
 public class StoreDatabase extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "mds_reads.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 4;
 
     public static final String TABLE_USER = "user_store";
     public static final String TABLE_BOOKS = "book_store";
@@ -65,6 +65,7 @@ public class StoreDatabase extends SQLiteOpenHelper {
                 COLUMN_GROUP_ID + " TEXT, " +
                 COLUMN_PHOTO + " TEXT, " +
                 COLUMN_ENTER_DATE + " TEXT, " +
+                COLUMN_USER_TYPE + " TEXT, " +
                 COLUMN_BCOUNT + " INTEGER , " +
                 COLUMN_POINT + " INTEGER , " +
                 COLUMN_REVIEW_SUM + " INTEGER , " +
@@ -114,7 +115,7 @@ public class StoreDatabase extends SQLiteOpenHelper {
 
     }
 
-    public Cursor getSinlgeEntry(String phoneNumber) {
+    public Cursor getUserEntry(String phoneNumber) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res = db.rawQuery("SELECT * FROM " + TABLE_USER + " WHERE " +
                 COLUMN_PHONE + "=?", new String[]{phoneNumber});
@@ -171,6 +172,7 @@ public class StoreDatabase extends SQLiteOpenHelper {
         updateValues.put(COLUMN_GROUP_ID, user.getGroup_id());
         updateValues.put(COLUMN_PHONE, user.getPhoneNumber());
         updateValues.put(COLUMN_ENTER_DATE, user.getEnterDate());
+        updateValues.put(COLUMN_USER_TYPE, user.getUserType());
         updateValues.put(COLUMN_POINT, user.getPoint());
         updateValues.put(COLUMN_REVIEW_SUM, user.getReview_sum());
         updateValues.put(COLUMN_RAINTING_IN_GROUPS, user.getRatingInGroups());

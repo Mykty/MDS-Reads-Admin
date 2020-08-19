@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,8 +25,9 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.MyTVie
     String [] monthStore;
 
     public static class MyTViewHolder extends RecyclerView.ViewHolder{
-        public TextView userPoint, info, bookCount, userRating, tv_enter_date;
+        public TextView userPoint, info, bookCount, userRating, tv_enter_date, userReview;
         CircleImageView person_photo;
+        ImageView userTypeIcon;
 
         public MyTViewHolder(View view) {
             super(view);
@@ -34,7 +36,9 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.MyTVie
             info = view.findViewById(R.id.info);
             bookCount = view.findViewById(R.id.bookCount);
             userRating = view.findViewById(R.id.userRating);
-            tv_enter_date = view.findViewById(R.id.tv_enter_date);
+            tv_enter_date = view.findViewById(R.id.user_group);
+            userReview = view.findViewById(R.id.userReview);
+            userTypeIcon = view.findViewById(R.id.userTypeIcon);
         }
 
     }
@@ -47,7 +51,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.MyTVie
     @Override
     public MyTViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView;
-        itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user2, parent, false);
+        itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_rating_user, parent, false);
         return new MyTViewHolder(itemView);
     }
 
@@ -65,6 +69,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.MyTVie
         holder.info.setText(item.getInfo());
         holder.bookCount.setText(""+item.getBookCount());
         holder.userRating.setText(""+item.getRatingInGroups());
+        holder.userReview.setText("" + item.getReview_sum());
 
         if(item.getEnterDate().equals("not")){
             holder.tv_enter_date.setTextColor(context.getResources().getColor(R.color.gradientLightOrange2));
@@ -76,6 +81,23 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.MyTVie
             holder.tv_enter_date.setText(String.format("%s %s, %s", dateStr[0], monthStr,  dateStr[2]));
             holder.tv_enter_date.setTextColor(context.getResources().getColor(R.color.bronze2));
         }
+
+
+        int uTypeIcon = R.color.transparent;
+
+        switch (item.getUserType()) {
+            case "gold":
+                uTypeIcon = R.drawable.ic_gold;
+                break;
+            case "silver":
+                uTypeIcon = R.drawable.ic_silver;
+                break;
+            case "bronze":
+                uTypeIcon = R.drawable.ic_bronze;
+                break;
+        }
+
+        holder.userTypeIcon.setImageResource(uTypeIcon);
     }
 
     private boolean isOnline() {

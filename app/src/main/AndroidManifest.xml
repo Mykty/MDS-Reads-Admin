@@ -48,6 +48,7 @@
 
         <activity
             android:name=".groups_menu.UserReviewCheckActivity"
+            android:windowSoftInputMode="stateAlwaysHidden"
             android:parentActivityName=".groups_menu.activities.UserProfileActivity" />
 
         <activity

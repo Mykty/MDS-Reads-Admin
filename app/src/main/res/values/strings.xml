@@ -9,10 +9,13 @@
     <string name="cancel">Cancel</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="delete">Өшіру</string>
+    <string name="del_profile_subjects">Өшіруді қалайсыз ба?</string>
+    <string name="profile_subjects_deleted">Группа сәтті өшірілді!</string>
 
     <!--    Menu strings-->
     <string name="menu_books">Books</string>
-    <string name="menu_users">Users</string>
+    <string name="menu_users">Users Rating</string>
     <string name="menu_groups">Groups</string>
     <string name="menu_rules">Rules</string>
     <string name="menu_about_us">About us</string>
@@ -121,11 +124,17 @@
     <string name="user_rated">User rated</string>
     <string name="user_saved">User saved</string>
     <string name="admin_rate">Admin rate review</string>
+    <string name="admin_not_rated">not rated yet</string>
     <string name="save">Save</string>
     <string name="rating_error">Rating or Review text invalid</string>
     <string name="sort_name">SORT BY NAME</string>
     <string name="sort_book">SORT BY READ BOOKS</string>
     <string name="sort_point">SORT BY POINT</string>
+    <string name="filter_gold">Filter BY Gold users</string>
+    <string name="filter_silver">Filter BY Silver users</string>
+    <string name="filter_bronze">Filter BY Bronze users</string>
+    <string name="filter_other">Filter BY Not rated users</string>
+    <string name="filter_all">Show all users</string>
     <string name="not_logged_in_yet">not logged in yet</string>
     <string name="re_calc_points">Группалардың және қолданушылардың ұпайлары есептелуде, күте тұрыңыз..</string>
     <string name="rated_successfully">rated successfully</string>

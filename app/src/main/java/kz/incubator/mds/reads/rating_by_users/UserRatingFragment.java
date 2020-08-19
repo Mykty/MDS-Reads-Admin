@@ -2,6 +2,7 @@ package kz.incubator.mds.reads.rating_by_users;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
@@ -24,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -38,10 +40,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import kz.incubator.mds.reads.R;
+import kz.incubator.mds.reads.book_list_menu.one_book_fragments.RecyclerItemClickListener;
 import kz.incubator.mds.reads.database.StoreDatabase;
 import kz.incubator.mds.reads.groups_menu.GetUsersAsyncTask;
-import kz.incubator.mds.reads.groups_menu.adapters.UserListAdapter;
+import kz.incubator.mds.reads.groups_menu.activities.UserProfileActivity;
 import kz.incubator.mds.reads.groups_menu.module.User;
+
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_BCOUNT;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_EMAIL;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_ENTER_DATE;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_GROUP;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_GROUP_ID;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_IMG_STORAGE_NAME;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_INFO;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_PHONE;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_PHOTO;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_POINT;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_RAINTING_IN_GROUPS;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_REVIEW_SUM;
+import static kz.incubator.mds.reads.database.StoreDatabase.COLUMN_USER_TYPE;
 
 public class UserRatingFragment extends Fragment implements View.OnClickListener {
     DatabaseReference mDatabaseRef, ratingUserRef;
@@ -55,19 +72,21 @@ public class UserRatingFragment extends Fragment implements View.OnClickListener
     SearchView searchView;
     View view;
     ProgressBar progressBar;
-    UserListAdapter listAdapter;
+    UserRatingdapter userRatingdapter;
     String TABLE_USER = "user_store";
-    AlertDialog sortDialog;
+    View filterDialogView;
+    AlertDialog filterDialog;
     View progressLoading;
-    ArrayList<String> goldUsers, silverUsers, bronzeUsers, otherUsers;
+    ArrayList<User> goldUsers, silverUsers, bronzeUsers, otherUsers;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.activity_user_list, container, false);
+        view = inflater.inflate(R.layout.fragment_rating_user, container, false);
 
         initView();
         checkVersion();
         getRatingUsers();
+        filterDialog();
 
         return view;
     }
@@ -98,6 +117,9 @@ public class UserRatingFragment extends Fragment implements View.OnClickListener
         recyclerView.setLayoutAnimation(animation);
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
 
+//        tempFillUsers();
+        userRatingdapter = new UserRatingdapter(getActivity(), userList);
+        recyclerView.setAdapter(userRatingdapter);
 
         searchView = view.findViewById(R.id.searchView);
         userListCopy = new ArrayList<>();
@@ -114,143 +136,176 @@ public class UserRatingFragment extends Fragment implements View.OnClickListener
             }
         });
 
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(getActivity(), recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, final int pos) {
+                        Intent intent = new Intent(getActivity(), UserProfileActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("user", userList.get(pos));
+                        intent.putExtras(bundle);
+                        startActivityForResult(intent, 101);
+                    }
+
+                    @Override
+                    public void onLongItemClick(View view, int position) {
+
+                    }
+                })
+        );
+
         setupSwipeRefresh();
     }
 
-    private void getRatingUsers() {
+    int userTypeRating = 0;
 
+    private User getUserFromDb(String userPhone) {
+        Cursor userCursor = storeDb.getUserEntry(userPhone);
+
+        if (((userCursor != null) && (userCursor.getCount() > 0))) {
+            userCursor.moveToFirst();
+            return new User(
+                    userTypeRating--,
+                    userCursor.getString(userCursor.getColumnIndex(COLUMN_INFO)),
+                    userCursor.getString(userCursor.getColumnIndex(COLUMN_EMAIL)),
+                    userCursor.getString(userCursor.getColumnIndex(COLUMN_PHONE)),
+                    userCursor.getString(userCursor.getColumnIndex(COLUMN_GROUP_ID)),
+                    userCursor.getString(userCursor.getColumnIndex(COLUMN_GROUP)),
+                    userCursor.getString(userCursor.getColumnIndex(COLUMN_PHOTO)),
+                    userCursor.getString(userCursor.getColumnIndex(COLUMN_ENTER_DATE)),
+//                    "none",
+                    userCursor.getString(userCursor.getColumnIndex(COLUMN_USER_TYPE)),
+                    userCursor.getString(userCursor.getColumnIndex(COLUMN_IMG_STORAGE_NAME)),
+                    userCursor.getInt(userCursor.getColumnIndex(COLUMN_BCOUNT)),
+                    userCursor.getInt(userCursor.getColumnIndex(COLUMN_POINT)),
+                    userCursor.getInt(userCursor.getColumnIndex(COLUMN_REVIEW_SUM)),
+                    userCursor.getInt(userCursor.getColumnIndex(COLUMN_RAINTING_IN_GROUPS))
+            );
+        }
+
+        return null;
+    }
+
+    private void getRatingUsers() {
         userList.clear();
-        goldUsers.clear();
-        silverUsers.clear();
-        bronzeUsers.clear();
-        otherUsers.clear();
 
         Query goldQuery = ratingUserRef.child("a_gold").orderByChild("point");
         Log.d("M_UserRatingFragment", "a_gold");
-        goldQuery.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot userData: dataSnapshot.getChildren()){
-                    String userPhone = userData.getKey();
-                    Log.d("M_UserRatingFragment", "userPhone: " + userPhone);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
-        });
-
-        Query silverQuery = ratingUserRef.child("b_silver").orderByChild("point");
-        Log.d("M_UserRatingFragment", "silver");
-        silverQuery.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                for(DataSnapshot userData: dataSnapshot.getChildren()){
-                    String userPhone = userData.getKey();
-                    Log.d("M_UserRatingFragment", "userPhone: " + userPhone);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
-        });
-
-        Query bronzeQuery = ratingUserRef.child("c_bronze").orderByChild("point");
-        Log.d("M_UserRatingFragment", "silver");
-        bronzeQuery.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                for(DataSnapshot userData: dataSnapshot.getChildren()){
-                    String userPhone = userData.getKey();
-                    Log.d("M_UserRatingFragment", "userPhone: " + userPhone);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
-        });
-
-        Query otherQuery = ratingUserRef.child("other").orderByChild("point");
-        Log.d("M_UserRatingFragment", "other");
-        otherQuery.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                for(DataSnapshot userData: dataSnapshot.getChildren()){
-                    String userPhone = userData.getKey();
-                    Log.d("M_UserRatingFragment", "userPhone: " + userPhone);
-                }
-
-                progressLoading.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
-        });
-        /*
-        ratingUserRef.addValueEventListener(new ValueEventListener() {
+        goldQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    for (DataSnapshot types : dataSnapshot.getChildren()) {
-                        String key = types.getKey();
-                        Log.d("M_UserRatingFragment", "types: " + key);
-
-                        for (DataSnapshot user : types.getChildren()) {
-                            String userPhone = user.getKey();
-                            Long userPoint = (Long) user.getValue();
-                            Log.d("M_UserRatingFragment", "userPhone: " + userPhone);
-                            Log.d("M_UserRatingFragment", "userPoint: " + userPoint);
-
-                        }
+                    goldUsers.clear();
+                    userTypeRating = (int) dataSnapshot.getChildrenCount();
+                    for (DataSnapshot userData : dataSnapshot.getChildren()) {
+                        String userPhone = userData.getKey();
+                        User g = getUserFromDb(userPhone);
+                        
+                        Log.d("M_UserRatingFragment", "type rating: "+g.getTypeRating());
+                        goldUsers.add(g);
                     }
+
+                    Collections.reverse(goldUsers);
+                    userList.addAll(goldUsers);
+                    userRatingdapter.notifyDataSetChanged();
+                    getSilverUsers();
+                } else {
+                    getSilverUsers();
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
             }
         });
 
-        */
+    }
 
-        /*
-        Cursor userCursor = sqdb.rawQuery("SELECT * FROM " + TABLE_USER, null);
-        if (((userCursor != null) && (userCursor.getCount() > 0))) {
-            userList.clear();
-            while (userCursor.moveToNext()) {
-                userList.add(new User(
-                        userCursor.getString(userCursor.getColumnIndex(COLUMN_INFO)),
-                        userCursor.getString(userCursor.getColumnIndex(COLUMN_EMAIL)),
-                        userCursor.getString(userCursor.getColumnIndex(COLUMN_PHONE)),
-                        userCursor.getString(userCursor.getColumnIndex(COLUMN_GROUP_ID)),
-                        userCursor.getString(userCursor.getColumnIndex(COLUMN_GROUP)),
-                        userCursor.getString(userCursor.getColumnIndex(COLUMN_PHOTO)),
-                        userCursor.getString(userCursor.getColumnIndex(COLUMN_ENTER_DATE)),
-                        userCursor.getString(userCursor.getColumnIndex(COLUMN_IMG_STORAGE_NAME)),
-                        userCursor.getInt(userCursor.getColumnIndex(COLUMN_BCOUNT)),
-                        userCursor.getInt(userCursor.getColumnIndex(COLUMN_POINT)),
-                        userCursor.getInt(userCursor.getColumnIndex(COLUMN_REVIEW_SUM)),
-                        userCursor.getInt(userCursor.getColumnIndex(COLUMN_RAINTING_IN_GROUPS))
-                ));
-
+    private void getSilverUsers() {
+        Query silverQuery = ratingUserRef.child("b_silver").orderByChild("point");
+        Log.d("M_UserRatingFragment", "b_silver");
+        silverQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    userTypeRating = (int) dataSnapshot.getChildrenCount();
+                    silverUsers.clear();
+                    for (DataSnapshot userData : dataSnapshot.getChildren()) {
+                        String userPhone = userData.getKey();
+                        silverUsers.add(getUserFromDb(userPhone));
+                    }
+                    Collections.reverse(silverUsers);
+                    userList.addAll(silverUsers);
+                    userRatingdapter.notifyDataSetChanged();
+                    getBronzeUsers();
+                } else {
+                    getBronzeUsers();
+                }
             }
 
-            userListCopy = (ArrayList<User>) userList.clone();
-            Collections.reverse(userListCopy);
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
 
-        }
-        */
+    private void getBronzeUsers() {
+        Query bronzeQuery = ratingUserRef.child("c_bronze").orderByChild("point");
+        Log.d("M_UserRatingFragment", "bronze");
+        bronzeQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    userTypeRating = (int) dataSnapshot.getChildrenCount();
+                    bronzeUsers.clear();
+                    for (DataSnapshot userData : dataSnapshot.getChildren()) {
+                        String userPhone = userData.getKey();
+                        bronzeUsers.add(getUserFromDb(userPhone));
+                    }
+                    Collections.reverse(bronzeUsers);
+                    userList.addAll(bronzeUsers);
+                    userRatingdapter.notifyDataSetChanged();
+                    getOtherUsers();
+                } else {
+                    getOtherUsers();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
 
     }
 
-    @Override
-    public void onClick(View v) {
+    private void getOtherUsers() {
+        Query otherQuery = ratingUserRef.child("other").orderByChild("point");
+        Log.d("M_UserRatingFragment", "other");
+        otherQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    userTypeRating = (int) dataSnapshot.getChildrenCount();
+                    otherUsers.clear();
+                    for (DataSnapshot userData : dataSnapshot.getChildren()) {
+                        String userPhone = userData.getKey();
+                        otherUsers.add(getUserFromDb(userPhone));
+                    }
+                    Collections.reverse(otherUsers);
+                    userList.addAll(otherUsers);
+                    userListCopy = (ArrayList<User>) userList.clone();
+                    userRatingdapter.notifyDataSetChanged();
+                    progressLoading.setVisibility(View.GONE);
+                    mSwipeRefreshLayout.setRefreshing(false);
+                }
+            }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
     }
+
 
     public void filter(String text) {
         userList.clear();
@@ -259,13 +314,13 @@ public class UserRatingFragment extends Fragment implements View.OnClickListener
         } else {
             text = text.toLowerCase();
             for (User item : userListCopy) {
-                if (item.getInfo().toLowerCase().contains(text) || item.getInfo().toLowerCase().contains(text) ||
-                        item.getPhoneNumber().toUpperCase().contains(text)) {
+                if (item.getInfo().toLowerCase().contains(text) || item.getInfo().toUpperCase().contains(text) ||
+                        item.getGroupName().toUpperCase().contains(text) || item.getGroupName().toLowerCase().contains(text)) {
                     userList.add(item);
                 }
             }
         }
-        recyclerView.setAdapter(listAdapter);
+        recyclerView.setAdapter(userRatingdapter);
     }
 
     @Override
@@ -293,13 +348,83 @@ public class UserRatingFragment extends Fragment implements View.OnClickListener
 
             case R.id.filter_user:
 
-                sortDialog.show();
+                filterDialog.show();
 
                 break;
+
         }
         return super.onOptionsItemSelected(item);
     }
 
+    public void filterDialog() {
+        LayoutInflater factory = LayoutInflater.from(getActivity());
+
+        filterDialogView = factory.inflate(R.layout.dialog_rating_user_filter, null);
+        filterDialog = new AlertDialog.Builder(getActivity()).create();
+
+        LinearLayout filter_all = filterDialogView.findViewById(R.id.filter_all);
+        LinearLayout filter_gold = filterDialogView.findViewById(R.id.filter_gold);
+        LinearLayout filter_silver = filterDialogView.findViewById(R.id.filter_silver);
+        LinearLayout filter_bronze = filterDialogView.findViewById(R.id.filter_bronze);
+        LinearLayout filter_other = filterDialogView.findViewById(R.id.filter_other);
+
+        filter_all.setOnClickListener(this);
+        filter_gold.setOnClickListener(this);
+        filter_silver.setOnClickListener(this);
+        filter_bronze.setOnClickListener(this);
+        filter_other.setOnClickListener(this);
+
+        filterDialog.setView(filterDialogView);
+
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.filter_all:
+                userList.clear();
+                userList.addAll(goldUsers);
+                userList.addAll(silverUsers);
+                userList.addAll(bronzeUsers);
+                userList.addAll(otherUsers);
+                filterFinalCase();
+
+                break;
+            case R.id.filter_gold:
+
+                userList.clear();
+                userList.addAll(goldUsers);
+                filterFinalCase();
+
+                break;
+            case R.id.filter_silver:
+
+                userList.clear();
+                userList.addAll(silverUsers);
+                filterFinalCase();
+
+                break;
+            case R.id.filter_bronze:
+
+                userList.clear();
+                userList.addAll(bronzeUsers);
+                filterFinalCase();
+
+                break;
+            case R.id.filter_other:
+
+                userList.clear();
+                userList.addAll(otherUsers);
+                filterFinalCase();
+                break;
+        }
+    }
+
+    private void filterFinalCase(){
+        userListCopy = (ArrayList<User>) userList.clone();
+        userRatingdapter.notifyDataSetChanged();
+        filterDialog.dismiss();
+    }
     public void setupSwipeRefresh() {
         mSwipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -406,7 +531,7 @@ public class UserRatingFragment extends Fragment implements View.OnClickListener
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Collections.reverse(userList);
-            recyclerView.setAdapter(listAdapter);
+            recyclerView.setAdapter(userRatingdapter);
             progressBar.setVisibility(View.GONE);
         }
     }

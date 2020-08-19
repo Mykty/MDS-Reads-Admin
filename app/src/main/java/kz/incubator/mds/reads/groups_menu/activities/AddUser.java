@@ -187,7 +187,7 @@ public class AddUser extends AppCompatActivity implements View.OnClickListener {
     private void registerUser() {
         progressVisible(true);
 
-        final User userInfo = new User(uNameSurname, uEmail, uPhone, groupId, groupName, "url", "not", "empty", "url", 0, 0, 0, 0);
+        final User userInfo = new User(uNameSurname, uEmail, uPhone, groupId, groupName, "url", "not", "other", "url", 0, 0, 0, 0);
 
         databaseReference.child("user_list").child(userInfo.getPhoneNumber()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

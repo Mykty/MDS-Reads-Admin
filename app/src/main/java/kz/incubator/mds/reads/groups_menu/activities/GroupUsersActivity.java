@@ -125,7 +125,7 @@ public class GroupUsersActivity extends AppCompatActivity implements View.OnClic
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(gName+getString(R.string.users));
+        getSupportActionBar().setTitle(gName+" "+getString(R.string.users));
         userRef = mDatabaseRef.child("user_list");
         userList = new ArrayList<>();
         groupList = new ArrayList<>();

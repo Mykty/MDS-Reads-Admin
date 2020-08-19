@@ -11,10 +11,12 @@ import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.database.DataSnapshot;
@@ -58,7 +60,9 @@ public class UserReviewCheckActivity extends AppCompatActivity implements View.O
     @BindView(R.id.userRated)
     RatingBar userRatedTxt;
     @BindView(R.id.adminRate)
-    RatingBar adminRateBar;
+    EditText adminRateEd;
+    @BindView(R.id.adminRateBtn)
+    Button adminRateBtn;
     @BindView(R.id.userReview)
     TextView userReviewTxt;
     @BindView(R.id.adminSaveBtn)
@@ -157,48 +161,64 @@ public class UserReviewCheckActivity extends AppCompatActivity implements View.O
                 userReviewTxt.setMovementMethod(new ScrollingMovementMethod());
                 userReviewTxt.setText(review_text);
 
-                adminRateBar.setRating(reviewInUser.getAdmin_rate());
+                if(reviewInUser.getAdmin_rate()!=0) adminRateEd.setText(""+reviewInUser.getAdmin_rate());
+                adminRateBtn.setOnClickListener(this);
             }
         }
     }
-    
+    int adminRate;
     @Override
     public void onClick(View view) {
-        saveProgress.setVisibility(View.VISIBLE);
-        adminSaveBtn.setVisibility(View.GONE);
+        switch (view.getId()){
+            case R.id.adminRateBtn:
+                adminRateBtn.setVisibility(View.GONE);
+                adminRateEd.setText("-15");
 
+                break;
 
-        final int adminRate = (int) adminRateBar.getRating();
-        mDatabase.child("user_list").child(userId).child("reviews").child(reviewKey).child("admin_rate").setValue(adminRate);
+            case R.id.adminSaveBtn:
+                if(adminRateEd.getText().toString().trim().length() != 0) {
+                    saveProgress.setVisibility(View.VISIBLE);
+                    adminSaveBtn.setVisibility(View.GONE);
 
-        Log.i(TAG, "user.getReview_sum(): " + user.getReview_sum());
-        Log.i(TAG, "reviewInUser.getAdmin_rate(): " + reviewInUser.getAdmin_rate());
-        Log.i(TAG, "adminRate: " + adminRate);
+                    adminRate = Integer.parseInt(adminRateEd.getText().toString());
+                    mDatabase.child("user_list").child(userId).child("reviews").child(reviewKey).child("admin_rate").setValue(adminRate);
 
-        mDatabase.child("user_list").child(userId).child("review_sum").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    long reviewSumData = (long) dataSnapshot.getValue();
+                    Log.i(TAG, "user.getReview_sum(): " + user.getReview_sum());
+                    Log.i(TAG, "reviewInUser.getAdmin_rate(): " + reviewInUser.getAdmin_rate());
+                    Log.i(TAG, "adminRate: " + adminRate);
 
-                    reviewSum = (int) reviewSumData - reviewInUser.getAdmin_rate() + adminRate;
+                    mDatabase.child("user_list").child(userId).child("review_sum").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                long reviewSumData = (long) dataSnapshot.getValue();
+                                //-20 - (-15) + (-15)
+                                if (adminRate == -15) adminRate = -25;
 
-                    mDatabase.child("user_list").child(userId).child("review_sum").setValue(reviewSum);
+                                reviewSum = (int) reviewSumData - reviewInUser.getAdmin_rate() + adminRate;
 
-                    pointSum = user.getBookCount() * 10 + reviewSum;
-                    mDatabase.child("user_list").child(userId).child("point").setValue(pointSum);
+                                mDatabase.child("user_list").child(userId).child("review_sum").setValue(reviewSum);
 
-                    new ReCalcGroupPoints(UserReviewCheckActivity.this).execute();
+                                pointSum = user.getBookCount() * 10 + reviewSum;
+                                mDatabase.child("user_list").child(userId).child("point").setValue(pointSum);
 
+                                new ReCalcGroupPoints(UserReviewCheckActivity.this).execute();
+
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                }else{
+                    Toast.makeText(this, "Admin rate empty", Toast.LENGTH_SHORT).show();
                 }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
+                break;
+        }
 
     }
 
@@ -259,5 +279,6 @@ public class UserReviewCheckActivity extends AppCompatActivity implements View.O
                 finish();
             }
         }
+
     }
 }

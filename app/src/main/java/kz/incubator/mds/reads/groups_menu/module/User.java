@@ -17,6 +17,7 @@ public class  User implements Serializable {
     String email;
     String enterDate;
     String userType;
+    int typeRating;
     int point;
     int review_sum;
     int bookCount;
@@ -27,6 +28,23 @@ public class  User implements Serializable {
     }
 
     public User(String info, String email, String phoneNumber, String group_id, String groupName, String photo, String enterDate, String userType, String imgStorageName, int bookCount, int point, int review_sum, int ratingInGroups){
+        this.info = info;
+        this.group_id = group_id;
+        this.groupName = groupName;
+        this.phoneNumber = phoneNumber;
+        this.photo = photo;
+        this.email = email;
+        this.imgStorageName = imgStorageName;
+        this.bookCount = bookCount;
+        this.point = point;
+        this.review_sum = review_sum;
+        this.ratingInGroups = ratingInGroups;
+        this.enterDate = enterDate;
+        this.userType = userType;
+    }
+
+    public User(int typeRating, String info, String email, String phoneNumber, String group_id, String groupName, String photo, String enterDate, String userType, String imgStorageName, int bookCount, int point, int review_sum, int ratingInGroups){
+        this.typeRating = typeRating;
         this.info = info;
         this.group_id = group_id;
         this.groupName = groupName;
@@ -87,6 +105,14 @@ public class  User implements Serializable {
             //return StudentName2.compareTo(StudentName1);
         }
     };
+
+    public int getTypeRating() {
+        return typeRating;
+    }
+
+    public void setTypeRating(int typeRating) {
+        this.typeRating = typeRating;
+    }
 
     public String getUserType() {
         return userType;
